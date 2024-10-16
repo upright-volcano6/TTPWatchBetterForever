@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <title>TTP NZ</title>
+    <style>
+      h1 {
+        text-align: center;
+      }
+      button {
+        background-color: #14a5b3;
+        border: none;
+        border-radius: 50px;
+      }
+      button:hover {
+        background-color: #3ec2cf;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome To TTP <sup>nz</sup></h1>
+  </body>
+</html>
