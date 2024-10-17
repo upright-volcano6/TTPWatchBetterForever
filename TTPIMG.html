@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Image Gallery</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: white;
+        }
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 10px;
+        }
+        .gallery-item {
+            width: calc(33.333% - 20px);
+            margin-bottom: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .gallery-item p {
+            padding: 10px;
+            text-align: center;
+            color: #555;
+        }
+        /* Responsive layout */
+        @media (max-width: 768px) {
+            .gallery-item {
+                width: calc(50% - 20px);
+            }
+        }
+        @media (max-width: 480px) {
+            .gallery-item {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Image Gallery</h1>
+
+    <div class="gallery">
+        <div class="gallery-item">
+            <img src="https://via.placeholder.com/600x400" alt="Image 1">
+            <p>Image 1 Description</p>
+        </div>
+        <div class="gallery-item">
+            <img src="https://via.placeholder.com/600x400" alt="Image 2">
+            <p>Image 2 Description</p>
+        </div>
+        <div class="gallery-item">
+            <img src="https://via.placeholder.com/600x400" alt="Image 3">
+            <p>Image 3 Description</p>
+        </div>
+        <div class="gallery-item">
+            <img src="https://via.placeholder.com/600x400" alt="Image 4">
+            <p>Image 4 Description</p>
+        </div>
+        <div class="gallery-item">
+            <img src="https://via.placeholder.com/600x400" alt="Image 5">
+            <p>Image 5 Description</p>
+        </div>
+        <div class="gallery-item">
+            <img src="https://via.placeholder.com/600x400" alt="Image 6">
+            <p>Image 6 Description</p>
+        </div>
+    </div>
+
+</body>
+</html>
