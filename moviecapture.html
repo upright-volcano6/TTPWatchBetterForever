@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pro Video Recorder</title>
+  <title>Advanced Video Recorder</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      padding: 20px;
     }
     video {
       border: 2px solid black;
@@ -48,6 +49,11 @@
       margin: 5px;
       border: 2px solid black;
     }
+    input[type="text"] {
+      padding: 5px;
+      margin-top: 5px;
+      width: 250px;
+    }
   </style>
 </head>
 <body>
@@ -55,7 +61,7 @@
 
   <!-- Video Preview with Filter Options -->
   <div>
-    <video id="videoPreview" width="640" height="480" autoplay></video>
+    <video id="videoPreview" width="640" height="480" autoplay muted></video>
     <select id="filterSelect">
       <option value="none">No Filter</option>
       <option value="grayscale">Grayscale</option>
@@ -89,11 +95,15 @@
     <div id="volumeLevel"></div>
   </div>
 
-  <!-- Recorded Video and Thumbnails -->
+  <!-- Recorded Video, Thumbnails, and Download Option -->
   <h3>Recorded Segments:</h3>
   <div id="thumbnails"></div>
   <video id="recordedVideo" controls width="640" height="480" style="display:none;"></video>
-  <a id="downloadLink" style="display: none;">Download Video</a>
+  <div>
+    <label for="filenameInput">File Name: </label>
+    <input type="text" id="filenameInput" placeholder="Enter filename..." value="recorded_video.webm" />
+    <a id="downloadLink" style="display: none;">Download Video</a>
+  </div>
 
   <script>
     const videoPreview = document.getElementById('videoPreview');
@@ -110,6 +120,7 @@
     const thumbnailsContainer = document.getElementById('thumbnails');
     const filterSelect = document.getElementById('filterSelect');
     const resolutionSelect = document.getElementById('resolutionSelect');
+    const filenameInput = document.getElementById('filenameInput');
 
     let mediaRecorder;
     let recordedChunks = [];
@@ -180,10 +191,14 @@
 
     // Start recording
     startBtn.addEventListener('click', () => {
-      recordedChunks = [];
-      thumbnailsContainer.innerHTML = ''; // Clear previous thumbnails
-      recordedVideo.style.display = 'none'; // Hide previous video
-      downloadLink.style.display = 'none'; // Hide download link
+      if (recordedChunks.length > 0) {
+        // Clear previous video
+        recordedChunks = [];
+        recordedVideo.src = '';
+        recordedVideo.style.display = 'none';
+        downloadLink.style.display = 'none';
+        thumbnailsContainer.innerHTML = ''; // Clear thumbnails
+      }
 
       mediaRecorder = new MediaRecorder(stream);
 
@@ -198,11 +213,12 @@
         const blob = new Blob(recordedChunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         recordedVideo.src = url;
-        recordedVideo.style.display = 'block'; // Show the recorded video
+        recordedVideo.style.display = 'block';
 
         downloadLink.href = url;
-        downloadLink.download = 'recorded_video.webm';
-        downloadLink.textContent = 'Download Video';
+        const filename = filenameInput.value || 'recorded_video.webm';
+        downloadLink.download = filename;
+        downloadLink.textContent = 'Download ' + filename;
         downloadLink.style.display = 'block';
       };
 
@@ -247,7 +263,7 @@
     // Switch between front and back cameras
     switchCameraBtn.addEventListener('click', async () => {
       currentCamera = currentCamera === 'user' ? 'environment' : 'user';
-      stream.getTracks().forEach(track => track.stop()); 
+      stream.getTracks().forEach(track => track.stop());
       await startPreview();
     });
 
