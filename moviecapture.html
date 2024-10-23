@@ -92,7 +92,7 @@
   <!-- Recorded Video and Thumbnails -->
   <h3>Recorded Segments:</h3>
   <div id="thumbnails"></div>
-  <video id="recordedVideo" controls width="640" height="480"></video>
+  <video id="recordedVideo" controls width="640" height="480" style="display:none;"></video>
   <a id="downloadLink" style="display: none;">Download Video</a>
 
   <script>
@@ -181,6 +181,10 @@
     // Start recording
     startBtn.addEventListener('click', () => {
       recordedChunks = [];
+      thumbnailsContainer.innerHTML = ''; // Clear previous thumbnails
+      recordedVideo.style.display = 'none'; // Hide previous video
+      downloadLink.style.display = 'none'; // Hide download link
+
       mediaRecorder = new MediaRecorder(stream);
 
       mediaRecorder.ondataavailable = (event) => {
@@ -194,6 +198,7 @@
         const blob = new Blob(recordedChunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         recordedVideo.src = url;
+        recordedVideo.style.display = 'block'; // Show the recorded video
 
         downloadLink.href = url;
         downloadLink.download = 'recorded_video.webm';
