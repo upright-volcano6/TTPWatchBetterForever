@@ -4,18 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Advanced Video Recorder</title>
+  <style>
+    video {
+      border: 1px solid black;
+      margin-bottom: 10px;
+    }
+    button {
+      margin-right: 10px;
+    }
+  </style>
 </head>
 <body>
   <h1>Advanced Video Recorder</h1>
+
+  <!-- Video Preview -->
   <video id="videoPreview" width="640" height="480" autoplay></video>
+  
+  <!-- Control Buttons -->
   <div>
     <button id="startBtn">Start Recording</button>
     <button id="pauseBtn" disabled>Pause Recording</button>
     <button id="resumeBtn" disabled>Resume Recording</button>
     <button id="stopBtn" disabled>Stop Recording</button>
+    <button id="switchCameraBtn">Switch Camera</button>
   </div>
+
+  <!-- Recording Timer -->
+  <h3>Recording Timer: <span id="timer">00:00</span></h3>
+
+  <!-- Recorded Video & Download Link -->
   <h3>Recorded Video:</h3>
   <video id="recordedVideo" controls width="640" height="480"></video>
+  <a id="downloadLink" style="display: none;">Download Video</a>
 
   <script>
     const videoPreview = document.getElementById('videoPreview');
@@ -24,18 +44,40 @@
     const pauseBtn = document.getElementById('pauseBtn');
     const resumeBtn = document.getElementById('resumeBtn');
     const stopBtn = document.getElementById('stopBtn');
+    const switchCameraBtn = document.getElementById('switchCameraBtn');
+    const downloadLink = document.getElementById('downloadLink');
+    const timerElement = document.getElementById('timer');
 
     let mediaRecorder;
     let recordedChunks = [];
     let stream;
+    let currentCamera = 'user'; // 'user' is front camera, 'environment' is back camera
+    let recordingTime = 0;
+    let timerInterval;
 
     // Request access to the user's camera
     async function startPreview() {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentCamera }, audio: true });
       videoPreview.srcObject = stream;
     }
 
     startPreview();
+
+    // Timer function to update the recording time
+    function startTimer() {
+      recordingTime = 0;
+      timerInterval = setInterval(() => {
+        recordingTime++;
+        const minutes = String(Math.floor(recordingTime / 60)).padStart(2, '0');
+        const seconds = String(recordingTime % 60).padStart(2, '0');
+        timerElement.textContent = `${minutes}:${seconds}`;
+      }, 1000);
+    }
+
+    // Stop the timer
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
 
     // Start recording
     startBtn.addEventListener('click', () => {
@@ -52,12 +94,20 @@
         const blob = new Blob(recordedChunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         recordedVideo.src = url;
+
+        // Provide download link
+        downloadLink.href = url;
+        downloadLink.download = 'recorded_video.webm';
+        downloadLink.textContent = 'Download Video';
+        downloadLink.style.display = 'block';
       };
 
       mediaRecorder.start();
       startBtn.disabled = true;
       pauseBtn.disabled = false;
       stopBtn.disabled = false;
+      switchCameraBtn.disabled = true;
+      startTimer();
     });
 
     // Pause recording
@@ -65,6 +115,7 @@
       mediaRecorder.pause();
       pauseBtn.disabled = true;
       resumeBtn.disabled = false;
+      stopTimer();
     });
 
     // Resume recording
@@ -72,6 +123,7 @@
       mediaRecorder.resume();
       resumeBtn.disabled = true;
       pauseBtn.disabled = false;
+      startTimer();
     });
 
     // Stop recording
@@ -81,6 +133,22 @@
       pauseBtn.disabled = true;
       resumeBtn.disabled = true;
       stopBtn.disabled = true;
+      switchCameraBtn.disabled = false;
+      stopTimer();
+      timerElement.textContent = '00:00';
+    });
+
+    // Switch between front and back cameras
+    switchCameraBtn.addEventListener('click', async () => {
+      currentCamera = currentCamera === 'user' ? 'environment' : 'user';
+      stream.getTracks().forEach(track => track.stop()); // Stop current tracks
+      await startPreview(); // Restart preview with new camera
+    });
+
+    // Handle errors (like permission denied)
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true }).catch(error => {
+      console.error('Error accessing media devices:', error);
+      alert('Error accessing your camera or microphone. Please check your settings.');
     });
   </script>
 </body>
