@@ -4,106 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Advanced Video Recorder</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    video {
-      border: 2px solid black;
-      margin-bottom: 10px;
-    }
-    button {
-      margin-right: 10px;
-      margin-top: 10px;
-    }
-    #controls {
-      margin-bottom: 20px;
-    }
-    #progress {
-      width: 100%;
-      height: 10px;
-      background-color: #ddd;
-      margin-top: 10px;
-    }
-    #progressBar {
-      height: 100%;
-      background-color: #4caf50;
-      width: 0%;
-    }
-    #volumeMeter {
-      width: 100px;
-      height: 10px;
-      background-color: #ddd;
-      margin-top: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-    #volumeLevel {
-      height: 100%;
-      background-color: #f00;
-      width: 0;
-    }
-    #thumbnails img {
-      width: 150px;
-      margin: 5px;
-      border: 2px solid black;
-    }
-    input[type="text"] {
-      padding: 5px;
-      margin-top: 5px;
-      width: 250px;
-    }
-  </style>
 </head>
 <body>
-  <h1>Professional Video Recorder</h1>
-
-  <!-- Video Preview with Filter Options -->
+  <h1>Advanced Video Recorder</h1>
+  <video id="videoPreview" width="640" height="480" autoplay></video>
   <div>
-    <video id="videoPreview" width="640" height="480" autoplay muted></video>
-    <select id="filterSelect">
-      <option value="none">No Filter</option>
-      <option value="grayscale">Grayscale</option>
-      <option value="sepia">Sepia</option>
-      <option value="invert">Invert</option>
-    </select>
-  </div>
-
-  <!-- Controls -->
-  <div id="controls">
     <button id="startBtn">Start Recording</button>
-    <button id="pauseBtn" disabled>Pause</button>
-    <button id="resumeBtn" disabled>Resume</button>
-    <button id="stopBtn" disabled>Stop</button>
-    <button id="switchCameraBtn">Switch Camera</button>
-
-    <label for="resolutionSelect">Resolution:</label>
-    <select id="resolutionSelect">
-      <option value="default">Default</option>
-      <option value="hd">HD (1280x720)</option>
-      <option value="fullhd">Full HD (1920x1080)</option>
-    </select>
+    <button id="pauseBtn" disabled>Pause Recording</button>
+    <button id="resumeBtn" disabled>Resume Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
   </div>
-
-  <!-- Timer, Progress Bar, Volume Meter -->
-  <h3>Recording Timer: <span id="timer">00:00</span></h3>
-  <div id="progress">
-    <div id="progressBar"></div>
-  </div>
-  <div id="volumeMeter">
-    <div id="volumeLevel"></div>
-  </div>
-
-  <!-- Recorded Video, Thumbnails, and Download Option -->
-  <h3>Recorded Segments:</h3>
-  <div id="thumbnails"></div>
-  <video id="recordedVideo" controls width="640" height="480" style="display:none;"></video>
-  <div>
-    <label for="filenameInput">File Name: </label>
-    <input type="text" id="filenameInput" placeholder="Enter filename..." value="recorded_video.webm" />
-    <a id="downloadLink" style="display: none;">Download Video</a>
-  </div>
+  <h3>Recorded Video:</h3>
+  <video id="recordedVideo" controls width="640" height="480"></video>
 
   <script>
     const videoPreview = document.getElementById('videoPreview');
@@ -112,100 +24,27 @@
     const pauseBtn = document.getElementById('pauseBtn');
     const resumeBtn = document.getElementById('resumeBtn');
     const stopBtn = document.getElementById('stopBtn');
-    const switchCameraBtn = document.getElementById('switchCameraBtn');
-    const downloadLink = document.getElementById('downloadLink');
-    const timerElement = document.getElementById('timer');
-    const progressBar = document.getElementById('progressBar');
-    const volumeMeter = document.getElementById('volumeLevel');
-    const thumbnailsContainer = document.getElementById('thumbnails');
-    const filterSelect = document.getElementById('filterSelect');
-    const resolutionSelect = document.getElementById('resolutionSelect');
-    const filenameInput = document.getElementById('filenameInput');
 
     let mediaRecorder;
     let recordedChunks = [];
     let stream;
-    let currentCamera = 'user';
-    let recordingTime = 0;
-    let timerInterval;
-    let videoTrack;
-    let audioContext;
-    let analyser;
-    let volumeMeterInterval;
-
-    const constraints = {
-      video: { facingMode: currentCamera, width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: true
-    };
 
     // Request access to the user's camera
     async function startPreview() {
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      videoTrack = stream.getVideoTracks()[0];
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
       videoPreview.srcObject = stream;
-
-      // Setup audio analyzer for volume meter
-      audioContext = new AudioContext();
-      const source = audioContext.createMediaStreamSource(stream);
-      analyser = audioContext.createAnalyser();
-      source.connect(analyser);
-      analyser.fftSize = 256;
-      startVolumeMeter();
     }
 
     startPreview();
 
-    // Timer function to update the recording time
-    function startTimer() {
-      recordingTime = 0;
-      timerInterval = setInterval(() => {
-        recordingTime++;
-        const minutes = String(Math.floor(recordingTime / 60)).padStart(2, '0');
-        const seconds = String(recordingTime % 60).padStart(2, '0');
-        timerElement.textContent = `${minutes}:${seconds}`;
-
-        // Update progress bar (simulate 1 minute max recording time for demo)
-        progressBar.style.width = `${(recordingTime / 60) * 100}%`;
-      }, 1000);
-    }
-
-    // Stop the timer
-    function stopTimer() {
-      clearInterval(timerInterval);
-    }
-
-    // Start volume meter
-    function startVolumeMeter() {
-      volumeMeterInterval = setInterval(() => {
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(dataArray);
-        const volume = Math.max(...dataArray);
-        volumeMeter.style.width = `${volume / 255 * 100}%`;
-      }, 100);
-    }
-
-    // Stop volume meter
-    function stopVolumeMeter() {
-      clearInterval(volumeMeterInterval);
-    }
-
     // Start recording
     startBtn.addEventListener('click', () => {
-      if (recordedChunks.length > 0) {
-        // Clear previous video
-        recordedChunks = [];
-        recordedVideo.src = '';
-        recordedVideo.style.display = 'none';
-        downloadLink.style.display = 'none';
-        thumbnailsContainer.innerHTML = ''; // Clear thumbnails
-      }
-
+      recordedChunks = [];
       mediaRecorder = new MediaRecorder(stream);
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           recordedChunks.push(event.data);
-          createThumbnail(event.data);
         }
       };
 
@@ -213,22 +52,12 @@
         const blob = new Blob(recordedChunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         recordedVideo.src = url;
-        recordedVideo.style.display = 'block';
-
-        downloadLink.href = url;
-        const filename = filenameInput.value || 'recorded_video.webm';
-        downloadLink.download = filename;
-        downloadLink.textContent = 'Download ' + filename;
-        downloadLink.style.display = 'block';
       };
 
       mediaRecorder.start();
-      startTimer();
       startBtn.disabled = true;
       pauseBtn.disabled = false;
       stopBtn.disabled = false;
-      switchCameraBtn.disabled = true;
-      resolutionSelect.disabled = true;
     });
 
     // Pause recording
@@ -236,7 +65,6 @@
       mediaRecorder.pause();
       pauseBtn.disabled = true;
       resumeBtn.disabled = false;
-      stopTimer();
     });
 
     // Resume recording
@@ -244,58 +72,16 @@
       mediaRecorder.resume();
       resumeBtn.disabled = true;
       pauseBtn.disabled = false;
-      startTimer();
     });
 
     // Stop recording
     stopBtn.addEventListener('click', () => {
       mediaRecorder.stop();
-      stopTimer();
-      stopVolumeMeter();
       startBtn.disabled = false;
       pauseBtn.disabled = true;
       resumeBtn.disabled = true;
       stopBtn.disabled = true;
-      switchCameraBtn.disabled = false;
-      resolutionSelect.disabled = false;
     });
-
-    // Switch between front and back cameras
-    switchCameraBtn.addEventListener('click', async () => {
-      currentCamera = currentCamera === 'user' ? 'environment' : 'user';
-      stream.getTracks().forEach(track => track.stop());
-      await startPreview();
-    });
-
-    // Change resolution
-    resolutionSelect.addEventListener('change', async (e) => {
-      const resolution = e.target.value;
-      stream.getTracks().forEach(track => track.stop());
-      if (resolution === 'hd') {
-        constraints.video.width.ideal = 1280;
-        constraints.video.height.ideal = 720;
-      } else if (resolution === 'fullhd') {
-        constraints.video.width.ideal = 1920;
-        constraints.video.height.ideal = 1080;
-      } else {
-        constraints.video.width.ideal = 640;
-        constraints.video.height.ideal = 480;
-      }
-      await startPreview();
-    });
-
-    // Apply filter
-    filterSelect.addEventListener('change', (e) => {
-      videoPreview.style.filter = e.target.value;
-    });
-
-    // Create video segment thumbnail
-    function createThumbnail(blob) {
-      const thumbnail = document.createElement('img');
-      const url = URL.createObjectURL(blob);
-      thumbnail.src = url;
-      thumbnailsContainer.appendChild(thumbnail);
-    }
   </script>
 </body>
 </html>
